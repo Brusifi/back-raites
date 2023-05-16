@@ -1,45 +1,29 @@
-const mysql = require('mysql')
 const express = require('express')
-const bcrypt = require('bcrypt')
-
+const cors = require('cors')
+const corsOptions = require('./config/corsOptions')
+const bodyParser = require('body-parser')
+require('dotenv').config()
+const PORT = process.env.PORT || 12000
 const app = express()
 
-const connection = mysql.createConnection({
-    host: "localhost:3306",
-    user: "root",
-    password: "password"
-})
-  
-connection.connect(function(err) {
-    if (err) throw err;
-    console.log("Conectado a la base de datos")
-})
+app.use(cors(corsOptions))
 
-app.post('/registrousuario', async (req,res) => {
-    const { nua, nombre, appat, apmat, email, password, telefono} = req.body
-    const sql = "INSERT INTO customers ( usu_nua, usu_nombre, usu_ap_pat, usu_ap_mat, usu_correo, usu_password, usu_telefono) VALUES ?";
-    const salt = await bcrypt.genSalt(10)
-    const contrasenaNueva = await bcrypt.hash(req.body.password, salt)
-    const values = [
-        nua,
-        nombre, 
-        appat, 
-        apmat, 
-        email, 
-        contrasenaNueva, 
-        telefono
-    ]
-    connection.query(sql, [values], function (err, result) {
-        if (err) throw err;
-        console.log("1 Usuario insertado");
-    });
-})
+app.use(bodyParser.urlencoded({ extended: false }))
 
+app.use(bodyParser.json())
 
+const rutas_usuarios = require('./routes/usuarios')
+app.use('/', rutas_usuarios)
 
-const PORT = process.env.PORT || 12000
+const rutas_conductores = require('./routes/conductores')
+app.use('/', rutas_conductores)
+
+const rutas_viajes = require('./routes/viajes')
+app.use('/', rutas_viajes)
+
+const rutas_detalle = require('./routes/detalle')
+app.use('/', rutas_detalle)
 
 app.listen(PORT, () => {
     console.log(`Escuchando Puerto: ${PORT}`)
 })
-
